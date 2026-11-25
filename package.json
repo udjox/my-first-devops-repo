@@ -1,0 +1,11 @@
+{
+  "name": "github-actions-practice",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "env:create": "node scripts/create-env.mjs",
+    "artifacts": "node scripts/collect-artifacts.mjs"
+  },
+  "devDependencies": {"@playwright/test": "1.58.2"}
+}

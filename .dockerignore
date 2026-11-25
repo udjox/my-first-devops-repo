@@ -1,0 +1,13 @@
+.env
+.env.*
+.git
+.github
+node_modules
+artifacts
+playwright-report
+test-results
+tests
+scripts
+README.md
+package*.json
+playwright.config.cjs

@@ -1,0 +1,64 @@
+name: Deploy and test fullstack application
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: self-hosted-deployment
+  cancel-in-progress: false
+jobs:
+  deploy-and-test:
+    runs-on: [self-hosted, macOS, ARM64, practice-actions]
+    timeout-minutes: 20
+    env:
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      APP_PORT: '8080'
+      COMPOSE_PROJECT_NAME: actions-practice
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Configure Docker Desktop CLI on macOS
+        run: echo "$HOME/.docker/bin" >> "$GITHUB_PATH"
+      - name: Check Docker and Compose
+        run: |
+          docker info > /dev/null
+          docker compose version
+      - name: Create .env from GitHub Secrets
+        run: node scripts/create-env.mjs
+      - name: Validate and deploy
+        run: |
+          docker compose config -q
+          docker compose up -d --build --wait --wait-timeout 120
+          docker compose ps
+      - name: Install browser test dependencies
+        run: |
+          npm ci
+          npx playwright install chromium
+      - name: Test application, database and visible page
+        run: npm test
+      - name: Collect reports and Docker logs
+        if: always()
+        run: node scripts/collect-artifacts.mjs
+      - name: Upload reports and redacted environment
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-${{ github.run_id }}
+          path: artifacts/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove working environment file
+        if: always()
+        run: rm -f .env

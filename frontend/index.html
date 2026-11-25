@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Практика 2</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <h1>Практика 2. Docker и Docker Compose</h1>
+  <p>Приложение на Go. Данные загружаются из PostgreSQL.</p>
+  <h2>Список записей</h2>
+  <button id="refresh" type="button">Обновить список</button>
+  <p id="status" role="status">Загрузка…</p>
+  <ul id="items"></ul>
+  <p><a href="/api/items">JSON API</a> | <a href="/healthz">Проверка готовности</a></p>
+</body>
+</html>
