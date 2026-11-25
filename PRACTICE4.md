@@ -6,7 +6,7 @@
 
 - `legacy/docker-compose.yml` — исходное приложение и MySQL.
 - `docker-compose.prod.yml` — Mattermost 12.0.1 и PostgreSQL 15.
-- `.github/workflows/migration.yml` — автоматизация на self-hosted runner MacBook-Pro-Egor-practice.
+- `.github/workflows/migration.yml` — автоматизация на self-hosted runner MacBook-Pro-Egor-migration.
 - `scripts/migration/` — бэкап, перенос, проверка и сбор результатов.
 - `tests/mattermost.spec.cjs` — проверка исходных сообщений в браузере после переноса.
 
@@ -29,7 +29,7 @@ python3 scripts/migration/seed_legacy.py
 2. Проверить постоянный флаг завершения миграции.
 3. Если флага нет: остановить запись приложения, сохранить согласованный SQL dump и архив пользовательских файлов.
 4. Создать PostgreSQL и подготовить его схему с помощью официального migration-assist v0.8 для исходной версии Mattermost.
-5. Перенести записи официальным образом Mattermost pgloader. Используется флаг `include drop`; дополнительный сброс незавершённой целевой схемы позволяет повторить попытку после ошибки.
+5. Перенести записи официальным образом Mattermost pgloader. В секции WITH используется параметр `include drop`; дополнительный сброс незавершённой целевой схемы позволяет повторить попытку после ошибки.
 6. Восстановить индексы, запустить Mattermost 12.0.1 и удалить контейнер MySQL командой Compose с `--remove-orphans`.
 7. Проверить пользователя, приватный канал, исходные ID и тексты сообщений, SHA256 вложения и аватара, состояние контейнеров и отображение сообщений в браузере.
 8. Только после успешных проверок записать флаг завершения.
@@ -47,7 +47,7 @@ python3 scripts/migration/seed_legacy.py
 
 ## Демонстрация
 
-GitHub → Actions → Idempotent Mattermost migration and upgrade → Run workflow → ветка migration. Два запуска подряд должны быть успешными. Во втором шаги бэкапа и переноса будут Skipped.
+GitHub → Actions → Idempotent Mattermost migration and upgrade → успешный запуск → Re-run all jobs. Новая отправка изменений в ветку migration также запускает workflow. Два запуска подряд должны быть успешными. Во втором шаги бэкапа и переноса будут Skipped.
 
 ```sh
 docker ps

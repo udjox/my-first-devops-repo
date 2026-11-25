@@ -28,8 +28,13 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Configure Docker path
-        run: echo "$HOME/.docker/bin" >> "$GITHUB_PATH"
+      - name: Configure Docker for headless runner
+        run: |
+          echo "$HOME/.docker/bin" >> "$GITHUB_PATH"
+          mkdir -p "$RUNNER_TEMP/mattermost-docker"
+          echo '{"auths":{}}' > "$RUNNER_TEMP/mattermost-docker/config.json"
+          echo "DOCKER_CONFIG=$RUNNER_TEMP/mattermost-docker" >> "$GITHUB_ENV"
+          echo "DOCKER_HOST=unix://$HOME/.docker/run/docker.sock" >> "$GITHUB_ENV"
       - name: Create environment from GitHub Secrets
         run: python3 scripts/migration/create_env.py
       - name: Check migration completion marker
