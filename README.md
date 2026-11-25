@@ -43,7 +43,7 @@ node scripts/collect-artifacts.mjs
 node scripts/configure-github.mjs OWNER/REPO
 ```
 
-Скрипт берёт параметры из локального Compose и создаёт секреты `DB_USER`, `DB_PASSWORD`, `DB_NAME`. Пароль не печатается. Runner должен быть распакован в `~/Library/Application Support/Codex/practice-actions-runner` — на этом Mac это уже выполнено. Можно задать другой путь через `PRACTICE_RUNNER_DIR`.
+Скрипт берёт параметры из локального Compose и создаёт секреты `DB_USER`, `DB_PASSWORD`, `DB_NAME`. Пароль не печатается. Runner должен быть распакован в `~/Library/Codex/practice-actions-runner` — на этом Mac это уже выполнено. Можно задать другой путь через `PRACTICE_RUNNER_DIR`.
 
 В Settings > Actions > Runners должен появиться runner со статусом Idle/Online и меткой `practice-actions`. Для выполнения jobs Docker Desktop должен работать, компьютер должен оставаться включённым.
 

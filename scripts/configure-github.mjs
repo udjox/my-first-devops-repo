@@ -14,7 +14,7 @@ for(const [key,value] of Object.entries({DB_USER:environment.DB_USER,DB_PASSWORD
  gh(['secret','set',key,'--repo',repo],{input:value,stdio:['pipe','ignore','inherit']});
  console.log(`Configured repository secret ${key}`);
 }
-const runnerDir=process.env.PRACTICE_RUNNER_DIR||path.join(os.homedir(),'Library','Application Support','Codex','practice-actions-runner');
+const runnerDir=process.env.PRACTICE_RUNNER_DIR||path.join(os.homedir(),'Library','Codex','practice-actions-runner');
 if(!fs.existsSync(path.join(runnerDir,'config.sh'))) throw new Error('Install the official macOS ARM64 Actions runner first; see README');
 if(fs.existsSync(path.join(runnerDir,'.runner'))){
  const existing=JSON.parse(fs.readFileSync(path.join(runnerDir,'.runner'),'utf8'));
