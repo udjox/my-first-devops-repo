@@ -6,3 +6,8 @@ artifacts/
 playwright-report/
 test-results/
 .DS_Store
+.env.migration
+migration-artifacts/
+scripts/migration/migration-assist
+scripts/migration/__pycache__/
+!.env.migration.example

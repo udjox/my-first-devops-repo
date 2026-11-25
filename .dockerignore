@@ -11,3 +11,6 @@ scripts
 README.md
 package*.json
 playwright.config.cjs
+.env.migration
+migration-artifacts
+legacy

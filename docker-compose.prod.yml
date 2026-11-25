@@ -1,0 +1,55 @@
+name: mattermost-practice
+services:
+  mattermost:
+    image: mattermost/mattermost-team-edition:12.0.1
+    platform: linux/amd64
+    container_name: mattermost
+    ports: ["127.0.0.1:8065:8065"]
+    environment:
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:${DB_POSTGRES_PASSWORD:?Set DB_POSTGRES_PASSWORD}@db-postgres:5432/mattermost?sslmode=disable&connect_timeout=10"
+      MM_SERVICESETTINGS_SITEURL: http://localhost:8065
+      MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+      MM_TEAMSETTINGS_ENABLEOPENSERVER: "false"
+      MM_PLUGINSETTINGS_ENABLE: "false"
+      MM_EMAILSETTINGS_REQUIREEMAILVERIFICATION: "false"
+      MM_SERVICESETTINGS_ENABLETUTORIAL: "false"
+      MM_LOGSETTINGS_CONSOLELEVEL: ERROR
+    volumes:
+      # Тот же именованный том сохраняет вложения и аватары при обновлении.
+      - mattermost_data:/mattermost/data
+      - mattermost_logs:/mattermost/logs
+    networks: [mattermost_network]
+    depends_on:
+      db-postgres:
+        condition: service_healthy
+    restart: unless-stopped
+  db-postgres:
+    image: postgres:15-alpine
+    container_name: mattermost-postgres
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD:?Set DB_POSTGRES_PASSWORD}
+      POSTGRES_DB: mattermost
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    networks: [mattermost_network]
+    restart: unless-stopped
+networks:
+  mattermost_network:
+    name: mattermost_practice_network
+    driver: bridge
+volumes:
+  mattermost_data:
+    name: mattermost_practice_data
+    external: true
+  mattermost_logs:
+    name: mattermost_practice_logs
+    external: true
+  postgres_data:
+    name: mattermost_practice_postgres

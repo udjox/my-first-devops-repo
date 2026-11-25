@@ -1,0 +1,2 @@
+FROM mattermost/mattermost-pgloader:latest
+COPY migration-assist /usr/local/bin/migration-assist

@@ -1,0 +1,73 @@
+name: Idempotent Mattermost migration and upgrade
+on:
+  push:
+    branches: [migration]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mattermost-migration
+  cancel-in-progress: false
+jobs:
+  migrate-and-deploy:
+    if: github.ref == 'refs/heads/migration'
+    runs-on: [self-hosted, macOS, ARM64, practice-actions]
+    timeout-minutes: 40
+    env:
+      DB_MYSQL_ROOT_PASSWORD: ${{ secrets.DB_MYSQL_ROOT_PASSWORD }}
+      DB_MYSQL_PASSWORD: ${{ secrets.DB_MYSQL_PASSWORD }}
+      DB_POSTGRES_PASSWORD: ${{ secrets.DB_POSTGRES_PASSWORD }}
+      MM_ADMIN_PASSWORD: ${{ secrets.MM_ADMIN_PASSWORD }}
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Configure Docker path
+        run: echo "$HOME/.docker/bin" >> "$GITHUB_PATH"
+      - name: Create environment from GitHub Secrets
+        run: python3 scripts/migration/create_env.py
+      - name: Check migration completion marker
+        id: status
+        run: python3 scripts/migration/check_status.py
+      - name: Back up legacy database and files
+        if: steps.status.outputs.already_migrated == 'false'
+        run: python3 scripts/migration/backup.py
+      - name: Prepare official migration tools
+        if: steps.status.outputs.already_migrated == 'false'
+        run: python3 scripts/migration/prepare_tools.py
+      - name: Transfer MySQL to PostgreSQL with include drop
+        if: steps.status.outputs.already_migrated == 'false'
+        run: python3 scripts/migration/transfer.py
+      - name: Deploy Mattermost 12 and remove legacy containers
+        run: python3 scripts/migration/deploy.py
+      - name: Verify original messages, files and avatar
+        run: python3 scripts/migration/verify.py
+      - name: Install browser tests
+        run: |
+          npm ci
+          npx playwright install chromium
+      - name: Verify preserved data in web interface
+        run: npx playwright test --config playwright.migration.config.cjs
+      - name: Mark migration complete after successful checks
+        run: python3 scripts/migration/mark_completed.py
+      - name: Collect migration report and redacted logs
+        if: always()
+        run: python3 scripts/migration/collect.py
+      - name: Upload migration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mattermost-migration-${{ github.run_id }}
+          path: migration-artifacts/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove temporary credentials
+        if: always()
+        run: rm -f .env.migration
