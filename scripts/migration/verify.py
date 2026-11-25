@@ -1,6 +1,7 @@
 from common import *
 import hashlib
-wait_http(120)
+version=wait_http(120)
+assert version.startswith('12.0.1.'), 'Unexpected server version: '+version
 manifest=json.loads((STATE/'seed-manifest.json').read_text())
 source=json.loads((STATE/'source-counts.json').read_text())
 user,token=login()
